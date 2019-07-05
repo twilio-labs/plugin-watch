@@ -44,9 +44,10 @@ class Watch extends TwilioClientCommand {
 
   async getLogEvents(props) {
     try {
-      const [logEvents, smsEvents] = await Promise.all([
+      const [logEvents, smsEvents, callEvents] = await Promise.all([
         this.twilioClient.monitor.alerts.list(props),
-        this.twilioClient.messages.list({ dateSentAfter: props.startDate })
+        this.twilioClient.messages.list({ dateSentAfter: props.startDate }),
+        this.twilioClient.calls.list({ startTimeAfter: props.startDate })
       ]);
 
       return this.filterLogEvents(logEvents, 'debugger', e => e.sid)
@@ -59,9 +60,17 @@ class Watch extends TwilioClientCommand {
         .concat(
           this.filterLogEvents(smsEvents, 'message', e => e.sid + e.status).map(e => ({
             date: this.formatDateTime(e.dateUpdated),
-            type: `message[${this.messageInOrOut(e, 'in', 'out')}]`,
+            type: `message[${this.directionInOrOut(e, 'in', 'out')}]`,
             code: e.status,
             text: e.body
+          }))
+        )
+        .concat(
+          this.filterLogEvents(callEvents, 'call', e => e.sid + e.status).map(e => ({
+            date: this.formatDateTime(e.dateUpdated),
+            type: `call[${this.directionInOrOut(e, 'in', 'out')}]`,
+            code: e.status,
+            text: `FROM: ${e.from}, TO: ${e.to}`
           }))
         )
         .sort((a, b) => {
@@ -85,7 +94,7 @@ class Watch extends TwilioClientCommand {
     return logEvents.filter(event => !previousLogEvents.has(keyFunc(event))).reverse();
   }
 
-  messageInOrOut(message, inboundText, outboundText) {
+  directionInOrOut(message, inboundText, outboundText) {
     return message.direction.includes('out') ? outboundText : inboundText;
   }
 
