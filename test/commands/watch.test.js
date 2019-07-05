@@ -27,35 +27,6 @@ const testConfig = test
   .twilioCliEnv(Config);
 
 describe('watch', () => {
-  describe('historical', () => {
-    const testHelper = (args, responseCode, responseBody) =>
-      testConfig
-        .nock('https://monitor.twilio.com', api => {
-          api
-            .get('/v1/Alerts')
-            .query(true)
-            .reply(responseCode, responseBody);
-        })
-        .twilioCommand(Watch, args);
-
-    testHelper([], 200, { alerts: [INFO_LOG] }).it('prints alert/log events', ctx => {
-      expect(ctx.stdout).to.contain(INFO_LOG.alert_text);
-    });
-
-    testHelper(['--start-date', '2000-01-01', '--end-date', '2001-01-01'], 200, { alerts: [WARN_LOG] }).it(
-      'accepts date args',
-      ctx => {
-        expect(ctx.stdout).to.contain(WARN_LOG.alert_text);
-      }
-    );
-
-    testHelper([], 404, { code: 12345, message: 'Now you gonna die!' })
-      .exit(12345)
-      .it('prints errors', ctx => {
-        expect(ctx.stderr).to.contain('Now you gonna die!');
-      });
-  });
-
   describe('streaming', function () {
     // Give the stream enough time to complete.
     this.timeout(5000);
@@ -71,7 +42,7 @@ describe('watch', () => {
           .query(true)
           .reply(404, { code: 999, message: 'Now you gonna die!' });
       })
-      .twilioCommand(Watch, ['--streaming'])
+      .twilioCommand(Watch)
       .exit(999)
       .it('streams and then quits', ctx => {
         expect(ctx.stdout.match(INFO_LOG.error_code)).to.have.length(1);
@@ -81,12 +52,12 @@ describe('watch', () => {
       });
 
     testConfig
-      .twilioCommand(Watch, ['--streaming', '--end-date', '2020-01-01'])
+      .twilioCommand(Watch, ['--end-date', '2020-01-01'])
       .exit(1)
-      .it('does not like end dates when steaming');
+      .it('does not like end dates when streaming');
 
     testConfig
-      .twilioCommand(Watch, ['--streaming', '--start-date', '3005-01-01'])
+      .twilioCommand(Watch, ['--start-date', '3005-01-01'])
       .exit(1)
       .it('does not like futuristic stat dates');
   });

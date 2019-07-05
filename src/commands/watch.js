@@ -1,85 +1,92 @@
 const { flags } = require('@oclif/command');
 const { TwilioClientCommand } = require('@twilio/cli-core').baseCommands;
 const { sleep } = require('@twilio/cli-core').services.JSUtils;
+const moment = require('moment');
+const querystring = require('querystring');
 
 const STREAMING_DELAY_IN_SECONDS = 1;
 const STREAMING_HISTORY_IN_MINUTES = 5;
+const STREAMING_HISTORY_IN_MS = STREAMING_HISTORY_IN_MINUTES * 60 * 1000;
 
 class Watch extends TwilioClientCommand {
   constructor(argv, config, secureStorage) {
     super(argv, config, secureStorage);
 
     this.showHeaders = true;
-    this.latestLogEvents = [];
+    this.latestLogEvents = {
+      debugger: [],
+      message: [],
+      call: []
+    };
   }
 
   async run() {
     await super.run();
 
     const props = this.parseProperties() || {};
-    this.validatePropsAndFlags(props, this.flags);
+    this.logger.info('Watching for alerts, messages, and calls...');
 
-    // Get any historical data first.
-    const logEvents = await this.getLogEvents(props);
-    this.outputLogEvents(logEvents);
+    // Get any historical data first so we know what's new
+    props.startDate = new Date(new Date() - STREAMING_HISTORY_IN_MS);
+    await this.getLogEvents(props);
 
     // Then get streaming data.
-    /* eslint-disable no-await-in-loop */
-    while (this.flags.streaming) {
-      await sleep(STREAMING_DELAY_IN_SECONDS * 1000);
-
-      // If streaming, just look at the last X minutes. This allows for delayed
-      // events to show up. Note that time of day is ignored by this filter,
-      // but it will still allow us to capture logs during day rollovers (i.e.,
-      // our local clock just rolled over midnight but an event from 1 minute
-      // before midnight had yet to make its way through the pipeline);.
-      props.startDate = new Date(new Date() - (STREAMING_HISTORY_IN_MINUTES * 60 * 1000));
-      props.endDate = undefined; // Eh, why not?
+    /* eslint-disable no-await-in-loop, no-constant-condition */
+    while (true) {
+      props.startDate = new Date(new Date() - STREAMING_HISTORY_IN_MS);
 
       const logEvents = await this.getLogEvents(props);
       this.outputLogEvents(logEvents);
-    }
-  }
 
-  validatePropsAndFlags(props, flags) {
-    const errors = [];
-
-    if (flags.streaming) {
-      if (props.startDate && new Date(props.startDate) > new Date()) {
-        errors.push('"streaming" flag does not support a future "start-date" value');
-      }
-
-      if (props.endDate) {
-        errors.push('"streaming" flag does not support the "end-date" option');
-      }
-    }
-
-    if (errors.length > 0) {
-      errors.forEach(error => this.logger.error(error));
-      this.exit(1);
+      await sleep(STREAMING_DELAY_IN_SECONDS * 1000);
     }
   }
 
   async getLogEvents(props) {
     try {
-      const logEvents = await this.twilioClient.monitor.alerts.list(props);
+      const [logEvents, smsEvents] = await Promise.all([
+        this.twilioClient.monitor.alerts.list(props),
+        this.twilioClient.messages.list({ dateSentAfter: props.startDate })
+      ]);
 
-      return this.filterLogEvents(logEvents);
+      return this.filterLogEvents(logEvents, 'debugger', e => e.sid)
+        .map(e => ({
+          date: this.formatDateTime(e.dateCreated),
+          type: e.logLevel,
+          code: e.errorCode,
+          text: this.formatAlertText(e.alertText)
+        }))
+        .concat(
+          this.filterLogEvents(smsEvents, 'message', e => e.sid + e.status).map(e => ({
+            date: this.formatDateTime(e.dateUpdated),
+            type: `message[${this.messageInOrOut(e, 'in', 'out')}]`,
+            code: e.status,
+            text: e.body
+          }))
+        )
+        .sort((a, b) => {
+          if (a.date < b.date) {
+            return -1;
+          }
+          return a.date > b.date ? 1 : 0;
+        });
     } catch (err) {
       this.logger.error(err.message);
       this.exit(err.code);
     }
   }
 
-  filterLogEvents(logEvents) {
-    const previousLogEvents = new Set(this.latestLogEvents);
-    this.latestLogEvents = new Set(logEvents.map(event => event.sid));
+  filterLogEvents(logEvents, eventType, keyFunc) {
+    const previousLogEvents = new Set(this.latestLogEvents[eventType]);
+    this.latestLogEvents[eventType] = new Set(logEvents.map(keyFunc));
 
     // Filter out any events that we just saw, and then reverse them so they're
     // in ascending order.
-    return logEvents
-      .filter(event => !previousLogEvents.has(event.sid))
-      .reverse();
+    return logEvents.filter(event => !previousLogEvents.has(keyFunc(event))).reverse();
+  }
+
+  messageInOrOut(message, inboundText, outboundText) {
+    return message.direction.includes('out') ? outboundText : inboundText;
   }
 
   outputLogEvents(logEvents) {
@@ -88,35 +95,32 @@ class Watch extends TwilioClientCommand {
       this.showHeaders = false;
     }
   }
+
+  formatDateTime(dateTime) {
+    return moment(dateTime)
+      .utc()
+      .toISOString()
+      .replace('T', ' ')
+      .replace('.000Z', '');
+  }
+
+  formatAlertText(text) {
+    try {
+      const data = querystring.parse(text);
+      return data.Msg || text;
+    } catch (e) {
+      return text;
+    }
+  }
 }
 
-Watch.description = `Show a list of log events generated for the account
-
-Argg, this is only a subset of the log events and live tailing isn't quite ready! Think this is a killer feature? Let us know here: https://bit.ly/twilio-cli-feedback`;
-
-Watch.PropertyFlags = {
-  'log-level': flags.enum({
-    options: ['error', 'warning', 'notice', 'debug'],
-    description: 'Only show log events for this log level'
-  }),
-  'start-date': flags.string({
-    description: 'Only show log events on or after this date'
-  }),
-  'end-date': flags.string({
-    description: 'Only show log events on or before this date'
-  })
-};
+Watch.description = 'Keep an eye on incoming alerts, messages, and calls. Polls every 1 second.';
 
 Watch.flags = Object.assign(
   {
     properties: flags.string({
-      default: 'dateCreated, logLevel, errorCode, alertText',
-      description:
-        'The event properties you would like to display (JSON output always shows all properties)'
-    }),
-    streaming: flags.boolean({
-      char: 's',
-      description: 'Continuously stream incoming log events'
+      default: 'date, type, code, text',
+      description: 'The event properties you would like to display (date, type, code, & text)'
     })
   },
   Watch.PropertyFlags,
