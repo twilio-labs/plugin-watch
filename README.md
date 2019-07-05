@@ -27,28 +27,19 @@ USAGE
 
 ## `twilio watch`
 
-Show a list of log events generated for the account
+Keep an eye on incoming alerts, messages, and calls. Polls every 1 second.
 
 ```
 USAGE
   $ twilio watch
 
 OPTIONS
-  -l=(debug|info|warn|error|none)           [default: info] Level of logging messages.
-  -o=(columns|json|tsv)                     [default: columns] Format of command output.
-  -p, --project=project                     Shorthand identifier for your Twilio project.
-  -s, --streaming                           Continuously stream incoming log events
-  --end-date=end-date                       Only show log events on or before this date
-  --log-level=(error|warning|notice|debug)  Only show log events for this log level
+  -l=(debug|info|warn|error|none)  [default: info] Level of logging messages.
+  -o=(columns|json|tsv)            [default: columns] Format of command output.
+  -p, --project=project            Shorthand identifier for your Twilio project.
 
-  --properties=properties                   [default: dateCreated, logLevel, errorCode, alertText] The event properties
-                                            you would like to display (JSON output always shows all properties)
-
-  --start-date=start-date                   Only show log events on or after this date
-
-DESCRIPTION
-  Argg, this is only a subset of the log events and live tailing isn't quite ready! Think this is a killer feature? Let 
-  us know here: https://bit.ly/twilio-cli-feedback
+  --properties=properties          [default: date, type, code, text] The event properties you would like to display
+                                   (date, type, code, & text)
 ```
 
 _See code: [src\commands\watch.js](https://github.com/twilio-labs/plugin-watch/blob/v1.0.0/src\commands\watch.js)_
