@@ -37,9 +37,8 @@ OPTIONS
   -l=(debug|info|warn|error|none)  [default: info] Level of logging messages.
   -o=(columns|json|tsv)            [default: columns] Format of command output.
   -p, --project=project            Shorthand identifier for your Twilio project.
-
-  --properties=properties          [default: date, type, code, text] The event properties you would like to display
-                                   (date, type, code, & text)
+  --properties=properties          [default: date, type, code, text] event properties you would like to display
+  --show-recent-history            show recent events that occurred prior to beginning my watch
 ```
 
 _See code: [src\commands\watch.js](https://github.com/twilio-labs/plugin-watch/blob/v1.0.0/src\commands\watch.js)_
