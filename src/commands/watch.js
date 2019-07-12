@@ -182,7 +182,7 @@ class Watch extends TwilioClientCommand {
   formatAlertText(text) {
     try {
       const data = querystring.parse(text);
-      return data.Msg || text;
+      return data.parserMessage || data.Msg || text;
     } catch (e) {
       return text;
     }
