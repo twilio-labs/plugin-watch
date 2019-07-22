@@ -10,14 +10,10 @@ Access and stream your Twilio debugger logs along with your calls and messages.
 # Usage
 <!-- usage -->
 ```sh-session
-$ npm install -g @twilio-labs/plugin-watch
-$ twilio COMMAND
-running command...
-$ twilio (-v|--version|version)
-@twilio-labs/plugin-watch/1.0.2 win32-x64 node-v12.4.0
-$ twilio --help [COMMAND]
+$ twilio plugins:install @twilio-labs/plugin-watch
+$ twilio --help watch
 USAGE
-  $ twilio COMMAND
+  $ twilio watch
 ...
 ```
 <!-- usagestop -->
