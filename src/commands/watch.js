@@ -100,7 +100,7 @@ class Watch extends TwilioClientCommand {
             date: this.formatDateTime(e.dateUpdated),
             type: `message[${this.directionInOrOut(e, 'in', 'out')}]`,
             code: e.status,
-            text: e.body,
+            text: this.flags['no-pii'] ? e.body.length + ' chars' : e.body,
             raw: e
           }))
         )
@@ -109,7 +109,7 @@ class Watch extends TwilioClientCommand {
             date: this.formatDateTime(e.dateUpdated),
             type: `call[${this.directionInOrOut(e, 'in', 'out')}]`,
             code: e.status,
-            text: `FROM: ${e.from}, TO: ${e.to}`,
+            text: `FROM: ${this.redactPhone(e.from)}, TO: ${this.redactPhone(e.to)}`,
             raw: e
           }))
         )
@@ -136,6 +136,10 @@ class Watch extends TwilioClientCommand {
 
   directionInOrOut(message, inboundText, outboundText) {
     return message.direction.includes('out') ? outboundText : inboundText;
+  }
+
+  redactPhone(num) {
+    return this.flags['no-pii'] ? num.substring(0, 5) + num.substring(5).replace(/\d/g, '*') : num;
   }
 
   outputLogEvents(logEvents) {
@@ -195,6 +199,10 @@ Watch.PropertyFlags = {
   'show-recent-history': flags.boolean({
     default: false,
     description: 'show recent events that occurred prior to beginning my watch'
+  }),
+  'no-pii': flags.boolean({
+    default: false,
+    description: 'mask columns that may contain personally identifiable information (PII)'
   })
 };
 
