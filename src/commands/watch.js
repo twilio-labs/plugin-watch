@@ -119,9 +119,9 @@ class Watch extends TwilioClientCommand {
           }
           return a.date > b.date ? 1 : 0;
         });
-    } catch (err) {
-      this.logger.error(err.message);
-      this.exit(err.code);
+    } catch (error) {
+      this.logger.error(error.message);
+      this.exit(error.code);
     }
   }
 
