@@ -3,20 +3,17 @@
 
 Access and stream your Twilio debugger logs along with your calls and messages.
 
-<!-- toc -->
 * [Usage](#usage)
 * [Commands](#commands)
-<!-- tocstop -->
+
 # Usage
-<!-- usage -->
 ```sh-session
 $ twilio plugins:install @twilio-labs/plugin-watch
 $ twilio watch
 running command...
 ```
-<!-- usagestop -->
+
 # Commands
-<!-- commands -->
 * [`twilio watch`](#twilio-watch)
 
 ## `twilio watch`
@@ -37,4 +34,3 @@ OPTIONS
 ```
 
 _See code: [src/commands/watch.js](https://github.com/twilio-labs/plugin-watch/blob/master/src/commands/watch.js)_
-<!-- commandsstop -->
