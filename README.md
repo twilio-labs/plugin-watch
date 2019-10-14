@@ -31,5 +31,5 @@ OPTIONS
   --show-recent-history            show recent events that occurred prior to beginning my watch
 ```
 
-_See code: [src\commands\watch.js](https://github.com/twilio-labs/plugin-watch/blob/master/src/commands/watch.js)_
+_See code: [src\commands\watch.js](https://github.com/twilio-labs/plugin-watch/blob/2.0.0/src/commands/watch.js)_
 <!-- commandsstop -->
