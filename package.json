@@ -1,7 +1,7 @@
 {
   "name": "@twilio-labs/plugin-watch",
   "description": "watch live debug events, calls, and messages generated during your Twilio use",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "author": "Twilio @twilio",
   "bugs": "https://github.com/twilio/twilio-cli/issues",
   "dependencies": {
@@ -54,9 +54,9 @@
   "scripts": {
     "postpack": "rimraf oclif.manifest.json npm-shrinkwrap.json",
     "posttest": "eslint --ignore-path .gitignore . && npm audit",
-    "prepack": "oclif-dev manifest && oclif-dev readme && git checkout -- package-lock.json",
+    "prepack": "oclif-dev manifest && git checkout -- package-lock.json",
     "test": "nyc --check-coverage --lines 90 --reporter=html --reporter=text mocha --forbid-only \"test/**/*.test.js\"",
-    "version": "oclif-dev readme && git add README.md"
+    "version": "oclif-dev readme && echo 'Fix the README.md paths and check it in.'"
   },
   "publishConfig": {
     "access": "public"
