@@ -3,20 +3,17 @@
   "description": "watch live debug events, calls, and messages generated during your Twilio use",
   "version": "2.0.2",
   "author": "Twilio @twilio",
-  "bugs": "https://github.com/twilio/twilio-cli/issues",
+  "bugs": "https://github.com/twilio-labs/plugin-watch/issues",
   "dependencies": {
-    "@oclif/command": "^1.5.18",
-    "@oclif/config": "^1.13.2",
-    "@twilio/cli-core": "^3.0.0",
+    "@oclif/command": "^1.5.19",
+    "@oclif/config": "^1.13.3",
+    "@twilio/cli-core": "^4.3.3",
     "moment": "^2.24.0"
-  },
-  "peerDependencies": {
-    "keytar": "^4.11.0"
   },
   "devDependencies": {
     "@oclif/dev-cli": "^1.22.2",
     "@oclif/test": "^1.2.5",
-    "@twilio/cli-test": "^2.0.0",
+    "@twilio/cli-test": "^2.0.2",
     "chai": "^4.2.0",
     "eslint": "^6.1.0",
     "eslint-config-oclif": "^3.1.0",
