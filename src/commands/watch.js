@@ -36,7 +36,9 @@ class Watch extends TwilioClientCommand {
     };
   }
 
-  async runCommand() {
+  async run() {
+    await super.run();
+
     const logger = this.logger;
 
     if (process.platform === 'win32') {
