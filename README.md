@@ -1,6 +1,8 @@
 @twilio-labs/plugin-watch
 =========================
 
+[![npm version](https://badge.fury.io/js/%40twilio-labs%2Fplugin-watch.svg)](https://badge.fury.io/js/%40twilio-labs%2Fplugin-watch)
+
 Access and stream your Twilio debugger logs along with your calls and messages.
 
 [![Video overview](https://img.youtube.com/vi/2GRw-6dgMZ0/0.jpg)](https://www.youtube.com/watch?v=2GRw-6dgMZ0)
