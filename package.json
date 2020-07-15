@@ -6,7 +6,7 @@
   "bugs": "https://github.com/twilio-labs/plugin-watch/issues",
   "dependencies": {
     "@oclif/command": "^1.5.19",
-    "@oclif/config": "^1.13.3",
+    "@oclif/config": "^1.15.1",
     "@twilio/cli-core": "^4.3.3",
     "moment": "^2.24.0"
   },
