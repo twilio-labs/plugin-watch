@@ -1,26 +1,28 @@
-const chalk = require('chalk');
-const columnify = require('columnify');
-const { flags } = require('@oclif/command');
-const { TwilioClientCommand } = require('@twilio/cli-core').baseCommands;
-const { OutputFormats } = require('@twilio/cli-core').services.outputFormats;
-const { capitalize } = require('@twilio/cli-core').services.namingConventions;
-const { sleep } = require('@twilio/cli-core').services.JSUtils;
-const moment = require('moment');
-const querystring = require('querystring');
+const chalk = require("chalk");
+const columnify = require("columnify");
+const { Flags } = require("@oclif/core");
+const { TwilioClientCommand } = require("@twilio/cli-core").baseCommands;
+const { OutputFormats } = require("@twilio/cli-core").services.outputFormats;
+const { capitalize } = require("@twilio/cli-core").services.namingConventions;
+const { sleep } = require("@twilio/cli-core").services.JSUtils;
+const moment = require("moment");
+const querystring = require("querystring");
 
 const STREAMING_DELAY_IN_SECONDS = 1;
 const STREAMING_HISTORY_IN_MINUTES = 5;
 const STREAMING_HISTORY_IN_MS = STREAMING_HISTORY_IN_MINUTES * 60 * 1000;
 
 function headingTransform(heading) {
-  const capitalizeWords = ['Id', 'Sid', 'Iso', 'Sms', 'Url'];
+  const capitalizeWords = ["Id", "Sid", "Iso", "Sms", "Url"];
 
-  heading = heading.replace(/([A-Z])/g, ' $1');
+  heading = heading.replace(/([A-Z])/g, " $1");
   heading = capitalize(heading);
   heading = heading
-    .split(' ')
-    .map(word => (capitalizeWords.indexOf(word) > -1 ? word.toUpperCase() : word))
-    .join(' ');
+    .split(" ")
+    .map((word) =>
+      capitalizeWords.indexOf(word) > -1 ? word.toUpperCase() : word
+    )
+    .join(" ");
   return chalk.bold(heading);
 }
 
@@ -32,7 +34,7 @@ class Watch extends TwilioClientCommand {
     this.latestLogEvents = {
       debugger: [],
       message: [],
-      call: []
+      call: [],
     };
   }
 
@@ -41,26 +43,28 @@ class Watch extends TwilioClientCommand {
 
     const logger = this.logger;
 
-    if (process.platform === 'win32') {
-      const rl = require('readline').createInterface({
+    if (process.platform === "win32") {
+      const rl = require("readline").createInterface({
         input: process.stdin,
-        output: process.stdout
+        output: process.stdout,
       });
 
-      rl.on('SIGINT', () => {
-        process.emit('SIGINT');
+      rl.on("SIGINT", () => {
+        process.emit("SIGINT");
       });
     }
 
-    process.on('SIGINT', () => {
+    process.on("SIGINT", () => {
       // graceful shutdown
-      logger.info('And now my watch is ended.');
+      logger.info("And now my watch is ended.");
       /* eslint-disable no-process-exit */
       process.exit();
     });
 
     const props = this.parseProperties() || {};
-    logger.info('And now my watch begins. It shall not end until CTRL-C (SIGINT).');
+    logger.info(
+      "And now my watch begins. It shall not end until CTRL-C (SIGINT)."
+    );
 
     // Get any historical data first so we know what's new
     this.startDate = new Date(new Date() - STREAMING_HISTORY_IN_MS);
@@ -86,34 +90,42 @@ class Watch extends TwilioClientCommand {
       const [logEvents, smsEvents, callEvents] = await Promise.all([
         this.twilioClient.monitor.alerts.list({ startDate: this.startDate }),
         this.twilioClient.messages.list({ dateSentAfter: this.startDate }),
-        this.twilioClient.calls.list({ startTimeAfter: this.startDate })
+        this.twilioClient.calls.list({ startTimeAfter: this.startDate }),
       ]);
 
-      return this.filterLogEvents(logEvents, 'debugger', e => e.sid)
-        .map(e => ({
+      return this.filterLogEvents(logEvents, "debugger", (e) => e.sid)
+        .map((e) => ({
           date: this.formatDateTime(e.dateCreated),
           type: e.logLevel,
           code: e.errorCode,
           text: this.formatAlertText(e.alertText),
-          raw: e
+          raw: e,
         }))
         .concat(
-          this.filterLogEvents(smsEvents, 'message', e => e.sid + e.status).map(e => ({
+          this.filterLogEvents(
+            smsEvents,
+            "message",
+            (e) => e.sid + e.status
+          ).map((e) => ({
             date: this.formatDateTime(e.dateUpdated),
-            type: `message[${this.directionInOrOut(e, 'in', 'out')}]`,
+            type: `message[${this.directionInOrOut(e, "in", "out")}]`,
             code: e.status,
-            text: this.flags['no-pii'] ? e.body.length + ' chars' : e.body,
-            raw: e
+            text: this.flags["no-pii"] ? e.body.length + " chars" : e.body,
+            raw: e,
           }))
         )
         .concat(
-          this.filterLogEvents(callEvents, 'call', e => e.sid + e.status).map(e => ({
-            date: this.formatDateTime(e.dateUpdated),
-            type: `call[${this.directionInOrOut(e, 'in', 'out')}]`,
-            code: e.status,
-            text: `FROM: ${this.redactPhone(e.from)}, TO: ${this.redactPhone(e.to)}`,
-            raw: e
-          }))
+          this.filterLogEvents(callEvents, "call", (e) => e.sid + e.status).map(
+            (e) => ({
+              date: this.formatDateTime(e.dateUpdated),
+              type: `call[${this.directionInOrOut(e, "in", "out")}]`,
+              code: e.status,
+              text: `FROM: ${this.redactPhone(e.from)}, TO: ${this.redactPhone(
+                e.to
+              )}`,
+              raw: e,
+            })
+          )
         )
         .sort((a, b) => {
           if (a.date < b.date) {
@@ -133,15 +145,19 @@ class Watch extends TwilioClientCommand {
 
     // Filter out any events that we just saw, and then reverse them so they're
     // in ascending order.
-    return logEvents.filter(event => !previousLogEvents.has(keyFunc(event))).reverse();
+    return logEvents
+      .filter((event) => !previousLogEvents.has(keyFunc(event)))
+      .reverse();
   }
 
   directionInOrOut(message, inboundText, outboundText) {
-    return message.direction.includes('out') ? outboundText : inboundText;
+    return message.direction.includes("out") ? outboundText : inboundText;
   }
 
   redactPhone(num) {
-    return this.flags['no-pii'] ? num.substring(0, 5) + num.substring(5).replace(/\d/g, '*') : num;
+    return this.flags["no-pii"]
+      ? num.substring(0, 5) + num.substring(5).replace(/\d/g, "*")
+      : num;
   }
 
   outputLogEvents(logEvents) {
@@ -154,7 +170,7 @@ class Watch extends TwilioClientCommand {
       if (this.outputProcessor === OutputFormats.columns) {
         process.stdout.write(
           columnify(
-            logEvents.map(e => {
+            logEvents.map((e) => {
               delete e.raw;
               return e;
             }),
@@ -165,13 +181,15 @@ class Watch extends TwilioClientCommand {
                 date: { minWidth: COL_1, maxWidth: COL_1, headingTransform },
                 type: { minWidth: COL_2, maxWidth: COL_2, headingTransform },
                 code: { minWidth: COL_3, maxWidth: COL_3, headingTransform },
-                text: { minWidth: COL_4, maxWidth: COL_4, headingTransform }
-              }
+                text: { minWidth: COL_4, maxWidth: COL_4, headingTransform },
+              },
             }
-          ) + '\n'
+          ) + "\n"
         );
       } else {
-        this.output(logEvents, this.flags.properties, { showHeaders: this.showHeaders });
+        this.output(logEvents, this.flags.properties, {
+          showHeaders: this.showHeaders,
+        });
       }
       this.showHeaders = false;
     }
@@ -181,8 +199,8 @@ class Watch extends TwilioClientCommand {
     return moment(dateTime)
       .utc()
       .toISOString()
-      .replace('T', ' ')
-      .replace('.000Z', '');
+      .replace("T", " ")
+      .replace(".000Z", "");
   }
 
   formatAlertText(text) {
@@ -195,25 +213,27 @@ class Watch extends TwilioClientCommand {
   }
 }
 
-Watch.description = 'Keep an eye on incoming alerts, messages, and calls. Polls every 1 second.';
+Watch.description =
+  "Keep an eye on incoming alerts, messages, and calls. Polls every 1 second.";
 
 Watch.PropertyFlags = {
-  'show-recent-history': flags.boolean({
+  "show-recent-history": Flags.boolean({
     default: false,
-    description: 'show recent events that occurred prior to beginning my watch'
+    description: "show recent events that occurred prior to beginning my watch",
   }),
-  'no-pii': flags.boolean({
+  "no-pii": Flags.boolean({
     default: false,
-    description: 'mask columns that may contain personally identifiable information (PII)'
-  })
+    description:
+      "mask columns that may contain personally identifiable information (PII)",
+  }),
 };
 
 Watch.flags = Object.assign(
   {
-    properties: flags.string({
-      default: 'date, type, code, text',
-      description: 'event properties you would like to display'
-    })
+    properties: Flags.string({
+      default: "date, type, code, text",
+      description: "event properties you would like to display",
+    }),
   },
   Watch.PropertyFlags,
   TwilioClientCommand.flags
