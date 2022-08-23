@@ -5,7 +5,6 @@ const { TwilioClientCommand } = require("@twilio/cli-core").baseCommands;
 const { OutputFormats } = require("@twilio/cli-core").services.outputFormats;
 const { capitalize } = require("@twilio/cli-core").services.namingConventions;
 const { sleep } = require("@twilio/cli-core").services.JSUtils;
-const moment = require("moment");
 const querystring = require("querystring");
 
 const STREAMING_DELAY_IN_SECONDS = 1;
@@ -196,11 +195,21 @@ class Watch extends TwilioClientCommand {
   }
 
   formatDateTime(dateTime) {
-    return moment(dateTime)
-      .utc()
-      .toISOString()
-      .replace("T", " ")
-      .replace(".000Z", "");
+    const formatter = new Intl.DateTimeFormat("en", {
+      timeZone: "UTC",
+      hour12: false,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+    const parts = formatter.formatToParts(dateTime);
+    const datePart = (name) => parts.find((p) => p.type === name).value;
+    return `${datePart("year")}-${datePart("month")}-${datePart(
+      "day"
+    )} ${datePart("hour")}:${datePart("minute")}:${datePart("second")}`;
   }
 
   formatAlertText(text) {
