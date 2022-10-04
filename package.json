@@ -4,14 +4,12 @@
   "version": "3.0.0",
   "author": "Twilio @twilio",
   "bugs": "https://github.com/twilio-labs/plugin-watch/issues",
+  "main": "./src/index.js",
   "dependencies": {
-    "@oclif/command": "^1.8.15",
-    "@oclif/config": "^1.18.2",
-    "@twilio/cli-core": "^6.0.1",
-    "moment": "^2.29.1"
+    "@oclif/core": "^1.15.0",
+    "@twilio/cli-core": "^7.0.0"
   },
   "devDependencies": {
-    "@oclif/dev-cli": "^1.22.2",
     "@oclif/test": "^1.2.5",
     "@twilio/cli-test": "^2.0.2",
     "chai": "^4.2.0",
@@ -23,7 +21,7 @@
     "rimraf": "^2.6.3"
   },
   "engines": {
-    "node": ">=8.0.0"
+    "node": ">=14.0.0"
   },
   "files": [
     "/npm-shrinkwrap.json",
