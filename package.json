@@ -18,7 +18,8 @@
     "globby": "^10.0.1",
     "mocha": "^9.2.0",
     "nyc": "^15.1.0",
-    "rimraf": "^2.6.3"
+    "rimraf": "^2.6.3",
+    "oclif": "^3"
   },
   "engines": {
     "node": ">=14.0.0"
@@ -49,9 +50,9 @@
   "scripts": {
     "postpack": "rimraf oclif.manifest.json npm-shrinkwrap.json",
     "posttest": "eslint --ignore-path .gitignore . && npm audit",
-    "prepack": "oclif-dev manifest && git checkout -- package-lock.json",
+    "prepack": "oclif manifest && git checkout -- package-lock.json",
     "test": "nyc --check-coverage --lines 90 --reporter=html --reporter=text mocha --forbid-only \"test/**/*.test.js\"",
-    "version": "oclif-dev readme && echo 'Fix the README.md paths and check it in.'"
+    "version": "oclif readme && echo 'Fix the README.md paths and check it in.'"
   },
   "publishConfig": {
     "access": "public"
