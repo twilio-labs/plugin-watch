@@ -7,7 +7,7 @@
   "main": "./src/index.js",
   "dependencies": {
     "@oclif/core": "^1.15.0",
-    "@twilio/cli-core": "^7.0.0"
+    "@twilio/cli-core": "^7.2.1"
   },
   "devDependencies": {
     "@oclif/test": "^1.2.5",
