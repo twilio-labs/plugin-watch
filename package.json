@@ -6,7 +6,7 @@
   "bugs": "https://github.com/twilio-labs/plugin-watch/issues",
   "main": "./src/index.js",
   "dependencies": {
-    "@oclif/core": "^1.15.0",
+    "@oclif/core": "^4.0.0",
     "@twilio/cli-core": "^7.0.0"
   },
   "devDependencies": {
